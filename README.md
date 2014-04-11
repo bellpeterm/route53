@@ -15,7 +15,7 @@ Usage
 include_recipe "route53"
 
 route53_record "create a record" do
-  name  "test"
+  name  "test.domain"
   value "16.8.4.2"
   type  "A"
   zone_id               node[:route53][:zone_id]
@@ -28,6 +28,9 @@ end
 
 NOTE: If you do not specify aws credentials, it will attempt
  to use the AWS IAM Role assigned to the instance instead.
+
+NOTE: If you do not specify a zone_id, the provider will try
+ to determine it from the name.
 
 Testing
 =======

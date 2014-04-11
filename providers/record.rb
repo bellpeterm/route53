@@ -37,11 +37,30 @@ action :create do
 
   def zone(connection_info)
     if new_resource.aws_access_key_id && new_resource.aws_secret_access_key
-      @zone = Fog::DNS.new(connection_info).zones.get( new_resource.zone_id )
+      zones = Fog::DNS.new(connection_info).zones
     else
       Chef::Log.info "No AWS credentials supplied, going to attempt to use IAM roles instead"
-      @zone = Fog::DNS.new({ :provider => "AWS", :use_iam_profile => true }
-                             ).zones.get( new_resource.zone_id )
+      zones = Fog::DNS.new({ :provider => "AWS", :use_iam_profile => true }
+                             ).zones
+    end
+    
+    if new_resource.zone_id
+      zones.get( new_resource.zone_id )
+    else
+      myzone = Array.new
+      domain = new_resource.name.split('.')
+
+      until myzone.count != 0 do
+        domain.shift
+        domainstr = domain.join('.')
+        myzone = zones.select { |z| z.domain.match(domainstr)}
+      end
+
+      if myzone.count == 1
+        myzone[0]
+      else
+        raise ArgumentError.new('ZoneID not provided and unable to determine zone')
+      end
     end
   end
 
