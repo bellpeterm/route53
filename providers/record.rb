@@ -82,7 +82,9 @@ action :create do
       end
       
       if new_resource.zone_id
-        zones.get( new_resource.zone_id )
+        myzone = zones.get( new_resource.zone_id )
+        @name = name + myzone.domain.chop unless name.match(myzone.domain.chop)
+        myzone
       else
         myzone = Array.new
         domain = new_resource.name.split('.')
