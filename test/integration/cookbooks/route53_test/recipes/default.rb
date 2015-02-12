@@ -1,5 +1,5 @@
 #
-# Cookbook Name:: route53_wrapper
+# Cookbook Name:: route53_test
 # Recipe:: default
 #
 # Copyright 2014, Heavy Water Operations
@@ -24,6 +24,8 @@ if node['platform_family'] == 'debian'
   update_cache.run_action( :run )
 end
 
+package 'ntpdate'
+
 execute "update system time" do
   command 'ntpdate ntp.ubuntu.com'
   user 'root'
@@ -40,6 +42,7 @@ route53_record node[:records][:generic_record][:name] do
   aws_secret_access_key node[:route53][:aws_secret_access_key]
   overwrite             true
   action                :create
+  mock                  true
 end
 
 route53_record node[:records][:alias_record][:name] do
@@ -51,4 +54,15 @@ route53_record node[:records][:alias_record][:name] do
   overwrite             true
   action                :create
   only_if               { node[:records][:alias_record][:run] }
+  mock                  true
+end
+
+route53_record "#{node[:records][:generic_record][:name]}_delete" do
+  name                  node[:records][:generic_record][:name]
+  type                  node[:records][:generic_record][:type]
+  zone_id               node[:route53][:zone_id]
+  aws_access_key_id     node[:route53][:aws_access_key_id]
+  aws_secret_access_key node[:route53][:aws_secret_access_key]
+  action                :delete
+  mock                  true
 end
